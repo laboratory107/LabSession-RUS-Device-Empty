@@ -46,7 +46,7 @@ const char* deviceId = "Dev001";  // Device ID as specified in the list of devic
 const int lightPin = 35;
 const int dhtPin = 23; // It used to be tied to 21, but 21 and 22 are default pins for I2C communication (for OLED screens eg.), so we will leave them unused  
 
-const int buttonHappyPin = 2;
+const int buttonHappyPin = 27;
 const int buttonSadPin = 4;
 const int buttonNeutralPin = 5;
 char lastSentimentStatus = 'N';
@@ -59,10 +59,8 @@ DHTesp dht;
 WiFiClientSecure wifiClient;
 PubSubClient mqttClient(wifiClient);
 
-//const char* ssid = "Lab7";
-//const char* pass = "paDijo-o32ijaco";
-const char* ssid = "TheLabIOT";
-const char* pass = "Yaay!ICanTalkNow";
+const char* ssid = "Lab7";
+const char* pass = "paDijo-o32ijaco";
 short timeoutCounter = 0;
 
 void setupWiFi() {
@@ -116,7 +114,7 @@ void setupLightSensor() {
 }
 
 // MQTT is a publish-subscribe based, therefore a callback function is called whenever something is published on a topic that device is subscribed to
-// It's also a byte-safe protocol, therefore instead of transfering text, bytes are transfered and they aren't null terminated - so we need ot add \0 to terminate the string
+// It's also a binary-safe protocol, therefore instead of transfering text, bytes are transfered and they aren't null terminated - so we need ot add \0 to terminate the string
 void callback(char *topic, byte *payload, unsigned int length) { 
   
 }
