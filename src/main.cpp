@@ -13,8 +13,8 @@
 
 /* Azure auth data */
 
-#define HOST "iot-hub-lposaric.azure-devices.net"		 //[Azure IoT host name].azure-devices.net
-#define DEVICE_KEY "X4f3z596Sit3i7e6SL2kb4EFnrQlTJ2HrAIoTJclRy8="	 // Azure Primary key for device
+#define HOST ".."		 //[Azure IoT host name].azure-devices.net
+#define DEVICE_KEY ".."	 // Azure Primary key for device
 #define TOKEN_DURATION 60
 
 /* MQTT data for IoT Hub connection */
@@ -66,7 +66,7 @@ short timeoutCounter = 0;
 void setupWiFi() {
 	Logger.Info("Connecting to WiFi");
 
-	wifiClient.setCACert((const char*)ca_pem); // We are using TLS to secure the connection, therefore we need to supply a certificate (in the SDK)
+	//wifiClient.setCACert((const char*)ca_pem); // We are using TLS to secure the connection, therefore we need to supply a certificate (in the SDK)
 
 	WiFi.mode(WIFI_STA);
 	WiFi.begin(ssid, pass);
