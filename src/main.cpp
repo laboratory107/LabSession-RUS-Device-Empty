@@ -7,18 +7,17 @@
 #include <ctime>
 #include "WiFiClientSecure.h"
 
-#include "ArduinoJson.h"
 #include "DHTesp.h"
 #include "PubSubClient.h"
+#include "ArduinoJson.h"
 
 /* Azure auth data */
-
-#define HOST ".."		 //[Azure IoT host name].azure-devices.net
-#define DEVICE_KEY ".."	 // Azure Primary key for device
-#define TOKEN_DURATION 60
+char* deviceKey = "";	 // Azure Primary key for device
+const char* iotHubHost = "";		 //[Azure IoT host name].azure-devices.net
+const int tokenDuration = 60;
 
 /* MQTT data for IoT Hub connection */
-const char* mqttBrokerURI = HOST;  // MQTT host = IoT Hub link
+const char* mqttBroker = iotHubHost;  // MQTT host = IoT Hub link
 const int mqttPort = AZ_IOT_DEFAULT_MQTT_CONNECT_PORT;	// Secure MQTT port
 const char* mqttC2DTopic = AZ_IOT_HUB_CLIENT_C2D_SUBSCRIBE_TOPIC;	// Topic where we can receive cloud to device messages
 
@@ -26,7 +25,7 @@ const char* mqttC2DTopic = AZ_IOT_HUB_CLIENT_C2D_SUBSCRIBE_TOPIC;	// Topic where
 // using the SDK functions in initIoTHub()
 char mqttClientId[128];
 char mqttUsername[128];
-char mqttPassword[200];
+char mqttPasswordBuffer[200];
 char publishTopic[200];
 
 /* Auth token requirements */
@@ -35,10 +34,10 @@ uint8_t sasSignatureBuffer[256];  // Make sure it's of correct size, it will jus
 
 az_iot_hub_client client;
 AzIoTSasToken sasToken(
-	&client, AZ_SPAN_FROM_STR(DEVICE_KEY),
+	&client, az_span_create_from_str(deviceKey),
 	AZ_SPAN_FROM_BUFFER(sasSignatureBuffer),
 	AZ_SPAN_FROM_BUFFER(
-		mqttPassword));	 // Authentication token for our specific device
+		mqttPasswordBuffer));	 // Authentication token for our specific device
 
 const char* deviceId = "Dev001";  // Device ID as specified in the list of devices on IoT Hub
 
@@ -59,14 +58,15 @@ DHTesp dht;
 WiFiClientSecure wifiClient;
 PubSubClient mqttClient(wifiClient);
 
-const char* ssid = "Lab7";
-const char* pass = "paDijo-o32ijaco";
+const char* ssid = "";
+const char* pass = "";
 short timeoutCounter = 0;
 
 void setupWiFi() {
 	Logger.Info("Connecting to WiFi");
 
 	//wifiClient.setCACert((const char*)ca_pem); // We are using TLS to secure the connection, therefore we need to supply a certificate (in the SDK)
+  wifiClient.setInsecure();
 
 	WiFi.mode(WIFI_STA);
 	WiFi.begin(ssid, pass);
@@ -102,7 +102,7 @@ void setupButtonInterrupts() { // We will be setting up all the buttons in PULLU
 // Use pool pool.ntp.org to get the current time
 // Define a date on 1.1.2023. and wait until the current time has the same year (by default it's 1.1.1970.)
 void initializeTime() {	 // MANDATORY or SAS tokens won't generate
-  
+
 }
 
 void setupDHTSensor() { // NOTE: change to DHT11 if you are using the blue temp/humidity sensor
@@ -116,15 +116,15 @@ void setupLightSensor() {
 // MQTT is a publish-subscribe based, therefore a callback function is called whenever something is published on a topic that device is subscribed to
 // It's also a binary-safe protocol, therefore instead of transfering text, bytes are transfered and they aren't null terminated - so we need ot add \0 to terminate the string
 void callback(char *topic, byte *payload, unsigned int length) { 
+ 
+}
+
+void connectMQTT() {
   
 }
 
-bool connectMQTT() {
-
-}
-
 void mqttReconnect() {
-
+ 
 }
 
 int getLightValue() { // Get the light value by reading the voltage on the light pin using analogRead()
@@ -153,7 +153,7 @@ String getTelemetryData() { // Get the data and pack it in a JSON message
 }
 
 void sendTelemetryData() {
-  
+
 }
 
 long lastTime, currentTime = 0;
@@ -174,7 +174,7 @@ bool initIoTHub() {
 
   if (az_result_failed(az_iot_hub_client_init( // Create an instnace of IoT Hub client for our IoT Hub's host and the current device
           &client,
-          az_span_create((unsigned char *)HOST, strlen(HOST)),
+          az_span_create((unsigned char *)iotHubHost, strlen(iotHubHost)),
           az_span_create((unsigned char *)deviceId, strlen(deviceId)),
           &options)))
   {
@@ -201,7 +201,6 @@ bool initIoTHub() {
   Logger.Info("Great success");
   Logger.Info("Client ID: " + String(mqttClientId));
   Logger.Info("Username: " + String(mqttUsername));
-  Logger.Info("Password: " + (String)mqttPassword);
 
   return true;
 }
@@ -209,6 +208,11 @@ bool initIoTHub() {
 void setup() {
   setupWiFi();
   initializeTime();
+
+  //if (initIoTHub()) {
+    connectMQTT();
+    mqttReconnect();
+  //}
 
   setupLightSensor();
 	setupDHTSensor();
@@ -219,6 +223,5 @@ void setup() {
 
 
 void loop() { // No blocking in the loop, constantly check if we are connected and gather the data if necessary
-
   checkTelemetry();
 }
